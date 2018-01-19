@@ -1,0 +1,12 @@
+{
+	"import_table":"EC_REPORT",
+	"columns_import": ["ID", "REQUEST_ID", "FT", "AMOUNT", "TRACE" ],
+	"file_type": "xlsx",
+	"is_delete_old_data": true,
+	"position_start_date": "C11",
+	"position_end_date": null,
+	"format_start_date": "dd/MM/yyyy",
+	"format_end_date": "dd/MM/yyyy",
+	"position_address_pattern": "{Sheet:0, StartRow:3, Columns: [A,B,C]},{}"
+	"link_sheet": "{0:A ~ 2:B}"
+}

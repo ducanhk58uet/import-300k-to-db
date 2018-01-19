@@ -1,0 +1,14 @@
+<zk>
+	<window title="Main Window" viewModel="@id('vm') @init('zk.springboot.viewmodel.MainViewModel')">
+		Current Time (from Spring Service):
+		<label value="@load(vm.currentTime)"/>
+		<a iconSclass="z-icon-refresh" onClick="@command('updateTime')"/>
+
+		<separator />
+
+		<div>
+			<button label="Import" onClick="@command('download')"></button>
+		</div>
+		<apply templateURI="@load(vm.currentPage.uri)" pageModel="@load(vm.currentPage)"/>
+	</window>
+</zk>
