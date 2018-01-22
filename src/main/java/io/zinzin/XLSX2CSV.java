@@ -17,7 +17,10 @@
 
 package io.zinzin;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -92,7 +95,7 @@ public class XLSX2CSV
         public void startRow(int rowNum)
         {
             // If there were gaps, output the missing rows
-            outputMissingRows(rowNum-currentRow-1);
+            outputMissingRows(rowNum - currentRow - 1);
             // Prepare for this row
             firstCellOfRow = true;
             currentRow = rowNum;
@@ -212,7 +215,8 @@ public class XLSX2CSV
         try
         {
             XMLReader sheetParser = SAXHelper.newXMLReader();
-            ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, sheetHandler, formatter, false);
+            ContentHandler handler = new XSSFSheetXMLHandler(
+                    styles, null, strings, sheetHandler, formatter, false);
             sheetParser.setContentHandler(handler);
             sheetParser.parse(sheetSource);
         }
@@ -240,7 +244,7 @@ public class XLSX2CSV
             try (InputStream stream = iter.next())
             {
                 String sheetName = iter.getSheetName();
-                //this.output.println();
+                this.output.println();
                 this.output.println(sheetName + " [index=" + index + "]:");
                 processSheet(styles, strings, new SheetToCSV(), stream);
             }
@@ -273,10 +277,8 @@ public class XLSX2CSV
         // The package open is instantaneous, as it should be.
         try (OPCPackage p = OPCPackage.open(xlsxFile.getPath(), PackageAccess.READ))
         {
-            FileOutputStream fout = new FileOutputStream(args[2]);
-            XLSX2CSV xlsx2csv = new XLSX2CSV(p, new PrintStream(fout), minColumns);
+            XLSX2CSV xlsx2csv = new XLSX2CSV(p, System.out, minColumns);
             xlsx2csv.process();
-            fout.close();
         }
     }
 }

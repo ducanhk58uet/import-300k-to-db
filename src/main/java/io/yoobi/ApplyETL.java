@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Created by GEMVN on 1/19/2018.
  */
-public class Application
+public class ApplyETL
 {
     public static final File FILE_CONFIG = FileManager.getDesktopFile("etc/config_1.json");
     public static ObjectMapper mapper = new ObjectMapper();
@@ -31,11 +31,19 @@ public class Application
 
             System.out.println("Extract position Address: " + config.tableDatas.toString());
 
-            switch (config.type) {
+            switch (config.type)
+            {
                 case "xlsx":
                     extractExcelXLSX(config);
                     break;
+                case "xls":
+                    extractExcelXLS(config);
+                    break;
+                case "csv":
+                    extractCVS(config);
+                    break;
             }
+
 
 
 
@@ -49,10 +57,28 @@ public class Application
 
     private static void extractExcelXLSX(ECConfig config)
     {
-        if (config.tableDatas.get(0) != null && config.columns.size() != config.tableDatas.get(0).columns.size())
+        if (config.tableDatas.get(0) != null)
         {
-            System.out.println("Error: Database column not mapping with Excel File");
-            return;
+            for (TableData tableData: config.tableDatas)
+            {
+                if (tableData.columns.size() != config.columns.size()) { return; }
+            }
         }
+
+
+        //Step 1: Get extract date time with cofig
+
+
+        //TODO
+    }
+
+    private static void extractExcelXLS(ECConfig config)
+    {
+        //TODO
+    }
+
+    private static void extractCVS(ECConfig config)
+    {
+        //TODO
     }
 }

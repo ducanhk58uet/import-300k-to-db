@@ -3,8 +3,6 @@ package io.zinzin;
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,13 +23,13 @@ public class ExcelProcessor
     public static void main(String[] args)
             throws Exception
     {
-//        long time = System.currentTimeMillis();
-//        XLSX2CSV.start(new String[]{SAMPLE_XLSX_FILE_PATH_2, "-1", SAMPLE_CSV_FILE_PATH});
-//        System.out.println("Finish: " + (System.currentTimeMillis() - time));
-
         long time = System.currentTimeMillis();
-        ExampleEventUserModel.start(new String[]{SAMPLE_XLSX_FILE_PATH_2});
+        XLSX2CSV.start(new String[]{SAMPLE_XLSX_FILE_PATH_2, "3"});
         System.out.println("Finish: " + (System.currentTimeMillis() - time));
+
+//        long time = System.currentTimeMillis();
+//        ExampleEventUserModel.start(new String[]{SAMPLE_XLSX_FILE_PATH_2});
+//        System.out.println("Finish: " + (System.currentTimeMillis() - time));
 
 //        long time = System.currentTimeMillis();
 //        XLS2CSVmra.start(new String[]{SAMPLE_XLS_FILE_PATH});

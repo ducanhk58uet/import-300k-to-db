@@ -30,7 +30,6 @@ import org.apache.poi.util.SAXHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -40,7 +39,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * XSSF and SAX (Event API) basic example.
- * See {@link XLSX2CSV} for a fuller example of doing
+ * See {@link XLSX2CSVPrinter} for a fuller example of doing
  * XSLX processing with the XSSF Event code.
  */
 public class FromHowTo
