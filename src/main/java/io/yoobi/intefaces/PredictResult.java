@@ -10,5 +10,7 @@ import java.util.Map;
  */
 public interface PredictResult
 {
+    boolean afterCheck();
+
     void onListener(Map<Integer, List<Cell>> table);
 }

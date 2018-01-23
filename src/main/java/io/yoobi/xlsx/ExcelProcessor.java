@@ -3,6 +3,7 @@ package io.yoobi.xlsx;
 import io.yoobi.intefaces.PredictResult;
 import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
+import io.yoobi.model.TableData;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,8 +36,6 @@ public class ExcelProcessor
     private final int minColumns;
     private OPCPackage xlsxPackage;
     private Map<Integer, Map<Integer, List<Cell>>> sheetTable = new HashMap<>();
-    private Integer sheet = -1;
-
 
 
     private ExcelProcessor(OPCPackage pkg, int minColumns, ECConfig config)
@@ -61,63 +59,84 @@ public class ExcelProcessor
      * @throws OpenXML4JException
      * @throws SAXException
      */
-    public Object extract() throws IOException, OpenXML4JException, SAXException
+    public Map<Integer, Map<Integer, List<Cell>>> extract() throws IOException, OpenXML4JException, SAXException
     {
         ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
         XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
         StylesTable stylesTable = xssfReader.getStylesTable();
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
         int index = 0;
+
+
         while (iter.hasNext())
         {
             try (InputStream stream = iter.next())
             {
                 //Scan each sheet
                 final int idx = index;
-                ++index;
-
-                //optional choose single or multi sheets
-                if (sheet != -1 && index != sheet) continue;
 
                 String sheetName = iter.getSheetName();
                 System.out.println(">>> Scan each Sheet: " + sheetName + "[index= " + index + " ]");
-                processSheet(stylesTable, strings, stream, new PredictResult()
+                processSheet(stylesTable, strings, stream, idx, new PredictResult()
                 {
+                    @Override
+                    public boolean afterCheck()
+                    {
+                        if (config.getTableDatas() == null || config.getTableDatas().isEmpty())
+                        {
+                            return true;
+                        }
+                        else if (containsSheet(idx))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    }
+
                     @Override
                     public void onListener(Map<Integer, List<Cell>> table)
                     {
                         sheetTable.put(idx, table);
                     }
                 });
-
             }
-
+            ++index;
         }
 
-        return sheetTable.size() == 1 ? sheetTable.get(0) : sheetTable;
+        return sheetTable;
     }
 
-    public ExcelProcessor getSheet(int idx)
+    private boolean containsSheet(int idx)
     {
-        this.sheet = idx;
-        return this;
+        for (TableData tk: this.config.getTableDatas())
+        {
+            if (tk.getSheetIdx() == idx) return true;
+        }
+
+        return false;
     }
 
-    public void processSheet(StylesTable styles,
+    private void processSheet(StylesTable styles,
                              ReadOnlySharedStringsTable strings,
-                             InputStream inputStream, PredictResult result)
+                             InputStream inputStream,
+                             int currentSheet,
+                             PredictResult result)
             throws IOException, SAXException
     {
         DataFormatter formatter = new DataFormatter();
         InputSource sheetSource = new InputSource(inputStream);
         try
         {
-            XMLReader sheetParser = SAXHelper.newXMLReader();
-            XLSXFilter xlsxFilter = new XLSXFilter(this.minColumns, this.config);
-            ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxFilter, formatter, false);
-            sheetParser.setContentHandler(handler);
-            sheetParser.parse(sheetSource);
-            result.onListener(xlsxFilter.collectMap());
+            if(result.afterCheck())
+            {
+                XMLReader sheetParser = SAXHelper.newXMLReader();
+                XLSXFilter xlsxFilter = new XLSXFilter(this.minColumns, this.config, currentSheet);
+                ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxFilter, formatter, false);
+                sheetParser.setContentHandler(handler);
+                sheetParser.parse(sheetSource);
+                result.onListener(xlsxFilter.collectMap());
+            }
         }
         catch (ParserConfigurationException e)
         {

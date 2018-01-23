@@ -71,7 +71,7 @@ public class ApplyETL
         try
         {
             File f = new File(config.getPath());
-            Map<Integer, List<Cell>> dataTable = (Map<Integer, List<Cell>>) ExcelProcessor.newInstance(f, -1, config).getSheet(1).extract();
+            Map<Integer, List<Cell>> dataTable = ExcelProcessor.newInstance(f, -1, config).extract().get(0);
             System.out.println("Choose sheet 1: " + dataTable.size());
             System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
         }
