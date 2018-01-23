@@ -16,8 +16,8 @@ public class TableData
 
     public TableData(String s)
     {
-        this.sheetIdx = Integer.parseInt(this.readValueByField(s, "Sheet"));
-        this.startRow = Integer.parseInt(this.readValueByField(s, "StartRow"));
+        this.sheetIdx = Integer.parseInt(this.readValueByField(s, "S"));
+        this.startRow = Integer.parseInt(this.readValueByField(s, "R"));
         String ex1 = StringUtils.substringBetween(s, "[", "]");
         this.columns = Arrays.asList(ex1.split(","));
     }

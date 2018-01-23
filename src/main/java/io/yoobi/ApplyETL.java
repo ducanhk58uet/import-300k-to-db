@@ -1,11 +1,15 @@
 package io.yoobi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
 import io.yoobi.model.TableData;
+import io.yoobi.xlsx.ExcelProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by GEMVN on 1/19/2018.
@@ -43,10 +47,6 @@ public class ApplyETL
                     extractCVS(config);
                     break;
             }
-
-
-
-
         }
         catch (IOException e)
         {
@@ -67,9 +67,18 @@ public class ApplyETL
 
 
         //Step 1: Get extract date time with cofig
-
-
-        //TODO
+        //Step 2: Get filter data with config
+        try
+        {
+            File f = new File(config.getPath());
+            Map<Integer, List<Cell>> dataTable = (Map<Integer, List<Cell>>) ExcelProcessor.newInstance(f, -1, config).getSheet(1).extract();
+            System.out.println("Choose sheet 1: " + dataTable.size());
+            System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private static void extractExcelXLS(ECConfig config)

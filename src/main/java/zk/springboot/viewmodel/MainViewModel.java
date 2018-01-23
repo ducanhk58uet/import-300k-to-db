@@ -1,6 +1,5 @@
 package zk.springboot.viewmodel;
 
-import io.zinzin.ExcelProcessor;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
@@ -55,7 +54,7 @@ public class MainViewModel {
 	public void download()
 	{
 		try {
-			ExcelProcessor.readExcelBasic();
+			//ExcelProcessor.readExcelBasic();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

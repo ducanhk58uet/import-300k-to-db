@@ -42,6 +42,9 @@ public class ECConfig
     @JsonProperty(value = "link_sheet")
     public String linkSheet;
 
+    @JsonProperty(value = "path")
+    public String path;
+
     @JsonIgnoreProperties
     public List<TableData> tableDatas = new ArrayList<>();
 
@@ -143,6 +146,26 @@ public class ECConfig
     public void setLinkSheet(String linkSheet)
     {
         this.linkSheet = linkSheet;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public void setPath(String path)
+    {
+        this.path = path;
+    }
+
+    public List<TableData> getTableDatas()
+    {
+        return tableDatas;
+    }
+
+    public void setTableDatas(List<TableData> tableDatas)
+    {
+        this.tableDatas = tableDatas;
     }
 
     @Override
