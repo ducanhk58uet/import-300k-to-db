@@ -29,6 +29,7 @@ public class ApplyETL
 
             for (String s: config.positionAddressPattern.split("},"))
             {
+                if (s.isEmpty()) continue;
                 TableData tableData = new TableData(s);
                 config.tableDatas.add(tableData);
             }
@@ -57,7 +58,7 @@ public class ApplyETL
 
     private static void extractExcelXLSX(ECConfig config)
     {
-        if (config.tableDatas.get(0) != null)
+        if (!config.tableDatas.isEmpty())
         {
             for (TableData tableData: config.tableDatas)
             {
@@ -65,13 +66,12 @@ public class ApplyETL
             }
         }
 
-
         //Step 1: Get extract date time with cofig
         //Step 2: Get filter data with config
         try
         {
             File f = new File(config.getPath());
-            Map<Integer, List<Cell>> dataTable = ExcelProcessor.newInstance(f, -1, config).extract().get(0);
+            Map<Integer, List<Cell>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract().get(1);
             System.out.println("Choose sheet 1: " + dataTable.size());
             System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
         }

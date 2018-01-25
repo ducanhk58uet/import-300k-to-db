@@ -1,5 +1,6 @@
 package io.yoobi.xlsx;
 
+import io.yoobi.utils.JsonUtils;
 import io.yoobi.intefaces.PredictResult;
 import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
@@ -33,23 +34,23 @@ import java.util.Map;
 public class ExcelProcessor
 {
     private ECConfig config;
-    private final int minColumns;
+    private final int batchSize;
     private OPCPackage xlsxPackage;
     private Map<Integer, Map<Integer, List<Cell>>> sheetTable = new HashMap<>();
 
 
-    private ExcelProcessor(OPCPackage pkg, int minColumns, ECConfig config)
+    private ExcelProcessor(OPCPackage pkg, int batchSize, ECConfig config)
     {
         this.xlsxPackage = pkg;
-        this.minColumns = minColumns;
+        this.batchSize = batchSize;
         this.config = config;
     }
 
-    public static ExcelProcessor newInstance(File xlsxFile, int minColumns, ECConfig config)
+    public static ExcelProcessor newInstance(File xlsxFile, int batchSize, ECConfig config)
     throws InvalidFormatException
     {
         OPCPackage p = OPCPackage.open(xlsxFile.getPath(), PackageAccess.READ);
-        return new ExcelProcessor(p, minColumns, config);
+        return new ExcelProcessor(p, batchSize, config);
     }
 
     /**
@@ -67,7 +68,6 @@ public class ExcelProcessor
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
         int index = 0;
 
-
         while (iter.hasNext())
         {
             try (InputStream stream = iter.next())
@@ -77,21 +77,12 @@ public class ExcelProcessor
 
                 String sheetName = iter.getSheetName();
                 System.out.println(">>> Scan each Sheet: " + sheetName + "[index= " + index + " ]");
-                processSheet(stylesTable, strings, stream, idx, new PredictResult()
+                this.processSheet(stylesTable, strings, stream, idx, new PredictResult()
                 {
                     @Override
                     public boolean afterCheck()
                     {
-                        if (config.getTableDatas() == null || config.getTableDatas().isEmpty())
-                        {
-                            return true;
-                        }
-                        else if (containsSheet(idx))
-                        {
-                            return true;
-                        }
-
-                        return false;
+                        return config.getTableDatas() == null || config.getTableDatas().isEmpty() || containsSheet(idx);
                     }
 
                     @Override
@@ -113,7 +104,6 @@ public class ExcelProcessor
         {
             if (tk.getSheetIdx() == idx) return true;
         }
-
         return false;
     }
 
@@ -128,10 +118,10 @@ public class ExcelProcessor
         InputSource sheetSource = new InputSource(inputStream);
         try
         {
-            if(result.afterCheck())
+            if (result.afterCheck())
             {
                 XMLReader sheetParser = SAXHelper.newXMLReader();
-                XLSXFilter xlsxFilter = new XLSXFilter(this.minColumns, this.config, currentSheet);
+                XLSXFilter xlsxFilter = new XLSXFilter(this.batchSize, this.config, currentSheet);
                 ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxFilter, formatter, false);
                 sheetParser.setContentHandler(handler);
                 sheetParser.parse(sheetSource);

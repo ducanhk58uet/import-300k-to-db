@@ -16,16 +16,16 @@ import java.util.Map;
  */
 public class XLSXFilter implements SheetContentsHandler
 {
-    private final int minColumns;
+    private final int batchSize;
     private ECConfig config;
     private int currentRow = -1;
-    private int currentCol = -1;
     private int currentSheet = -1;
     private Map<Integer, List<Cell>> collectMap = new LinkedHashMap<>(); //Row - List<Cell>
+    private TableData tableData = null;
 
-    public XLSXFilter(int minColumns, ECConfig config, int currentSheet)
+    public XLSXFilter(int batchSize, ECConfig config, int currentSheet)
     {
-        this.minColumns = minColumns;
+        this.batchSize = batchSize;
         this.config = config;
         this.currentSheet = currentSheet;
     }
@@ -34,12 +34,21 @@ public class XLSXFilter implements SheetContentsHandler
     public void startRow(int i)
     {
         currentRow = i;
-        TableData tableData = this.config.getTableDatas().get(currentSheet);
+        if(collectMap.size() >= batchSize) return;
+
+        for (TableData _table: config.getTableDatas())
+        {
+            if (_table.getSheetIdx() == currentSheet)
+            {
+                tableData = _table;
+            }
+        }
+
         if (tableData != null && tableData.getStartRow() <= currentRow)
         {
             collectMap.put(currentRow, new ArrayList<>());
         }
-        else if (this.config.getTableDatas().get(currentSheet) == null)
+        else if (tableData == null)
         {
             collectMap.put(i, new ArrayList<>());
         }
@@ -50,7 +59,7 @@ public class XLSXFilter implements SheetContentsHandler
     {
         if (collectMap.containsKey(i))
         {
-            System.out.println("Pushed [" + i + "] = " + collectMap.get(i).size() + " items");
+            //System.out.println("Pushed [" + i + "] = " + collectMap.get(i).size() + " items");
             //TODO - clear if number of cell in a row = 0
         }
     }
@@ -60,7 +69,18 @@ public class XLSXFilter implements SheetContentsHandler
     {
         if (collectMap.containsKey(currentRow))
         {
-            collectMap.get(currentRow).add(new Cell(s, s1));
+            if (tableData != null)
+            {
+                if (tableData.getColumns().contains(s.replaceAll("[0-9]", "")))
+                {
+                    collectMap.get(currentRow).add(new Cell(s, s1));
+                }
+            }
+            else
+            {
+                collectMap.get(currentRow).add(new Cell(s, s1));
+            }
+
         }
     }
 
@@ -74,6 +94,5 @@ public class XLSXFilter implements SheetContentsHandler
     {
         return collectMap;
     }
-
 
 }

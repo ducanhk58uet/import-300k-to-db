@@ -338,8 +338,8 @@ public class XLS2CSVmra implements HSSFListener
                     lastColumnNumber = 0;
                 }
                 for (int i = lastColumnNumber; i < (minColumns); i++)
-                {
-                    output.print(',');
+
+                    output.print(',');{
                 }
             }
 
