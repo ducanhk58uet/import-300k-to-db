@@ -5,6 +5,7 @@ import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
 import io.yoobi.model.LinkSheet;
 import io.yoobi.model.TableData;
+import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
 
 import java.io.File;
@@ -17,9 +18,9 @@ import java.util.Map;
  */
 public class ApplyETL
 {
-    public static final File FILE_CONFIG = FileManager.getDesktopFile("etc/config_1.json");
+    public static final File FILE_CONFIG = FileManager.getDesktopFile("etc/config_2.json");
     public static ObjectMapper mapper = new ObjectMapper();
-
+    public static final int TC = 1;
 
     public static void main(String[] args)
     {
@@ -77,9 +78,24 @@ public class ApplyETL
         try
         {
             File f = new File(config.getPath());
-            Map<Integer, List<Cell>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract().get(1);
-            System.out.println("Choose sheet 1: " + dataTable.size());
-            System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
+            //Test 01: Not link sheet
+            if (TC == 1)
+            {
+
+                Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract();
+                System.out.println("Choose sheet 1: " + dataTable.size());
+                //System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
+                Map<Integer, List<Cell>> results = ExcelBuilder.merge(dataTable.get(0), dataTable.get(1), config.getLinkSheets().get(0));
+                System.out.println("Data: \n" + mapper.writeValueAsString(results));
+
+            }
+
+            //Test 02: Has linksheet
+            if (TC == 2)
+            {
+                //ExcelProcessor.newInstance(f, 50, config).extractAngMerge();
+            }
+
         }
         catch (Exception e)
         {

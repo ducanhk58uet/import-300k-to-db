@@ -33,4 +33,10 @@ public class Cell
     {
         this.value = value;
     }
+
+    public String getColumn()
+    {
+        return this.address.replaceAll("[0-9]", "");
+    }
+
 }

@@ -1,7 +1,8 @@
 package io.yoobi.xlsx;
 
-import io.yoobi.intefaces.TypedMapping;
+
 import io.yoobi.model.Cell;
+import io.yoobi.model.LinkSheet;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,44 +14,45 @@ import java.util.Map;
  */
 public class ExcelBuilder
 {
-    public static void main(String[] args)
-    {
-        Map<Integer, List<Cell>> t1 = new LinkedHashMap<>();
-        List<Cell> items = new ArrayList<>();
-        items.add(new Cell("A1","123"));
-        items.add(new Cell("A2", "8787"));
-        t1.put(1, items);
-
-        Map<Integer, List<Cell>> t2 = new LinkedHashMap<>();
-        List<Cell> items2 = new ArrayList<>();
-        items2.add(new Cell("A3","123"));
-        items2.add(new Cell("A4", "8787"));
-        items2.add(new Cell("A5", "8787"));
-        t2.put(2, items2);
-
-        for (Integer rowNumber: t1.keySet())
-        {
-            //t1.merge(rowNumber, items2, );
-        }
-
-    }
-
-    private static List<Cell> test(List<Cell> c1, List<Cell> c2)
-    {
-        System.out.println(c1.size() + " -- " + c2.size());
-        c1.addAll(c2);
-        return c1;
-    }
-
-    public static Map<Integer, List<Cell>> merge(Map<Integer, List<Cell>> sourceTable,
-                                                 Map<Integer, List<Cell>> desTable, TypedMapping type)
+    public static Map<Integer, List<Cell>> merge(Map<Integer, List<Cell>> t1, Map<Integer, List<Cell>> t2, LinkSheet link)
     {
         Map<Integer, List<Cell>> results = new LinkedHashMap<>();
 
-        //sourceTable.containsValue()
+        for (Integer rowNumber: t1.keySet())
+        {
+            String value = getValueFromLink(t1.get(rowNumber), link.getSourceColumn());
+            List<Cell> items = getOneRowByValue(t2, link.getDestinationColumn(), value);
+            t1.get(rowNumber).addAll(items);
+            List<Cell> cellFullList = t1.get(rowNumber);
+            results.put(rowNumber, cellFullList);
+        }
 
         return results;
     }
 
+    private static List<Cell> getOneRowByValue(Map<Integer, List<Cell>> t2, String column, String value)
+    {
+        for (Integer rowNumber: t2.keySet())
+        {
+            String v1 = getValueFromLink(t2.get(rowNumber), column);
+            if (v1.equals(value))
+            {
+                return t2.get(rowNumber);
+            }
+        }
+        return new ArrayList<>();
 
+    }
+
+    private static String getValueFromLink(List<Cell> cellList, String column)
+    {
+        for (Cell ck: cellList)
+        {
+            if (ck.getColumn().equals(column))
+            {
+                return ck.getValue().toString();
+            }
+        }
+        return null;
+    }
 }

@@ -1,9 +1,9 @@
 package io.yoobi.xlsx;
 
-import io.yoobi.utils.JsonUtils;
 import io.yoobi.intefaces.PredictResult;
 import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
+import io.yoobi.model.LinkSheet;
 import io.yoobi.model.TableData;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
@@ -99,26 +99,6 @@ public class ExcelProcessor
         return sheetTable;
     }
 
-    public Map<Integer, List<Cell>> extractAngMerge() throws IOException, OpenXML4JException, SAXException
-    {
-        Map<Integer, List<Cell>> results = new LinkedHashMap<>();
-
-        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
-        XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
-        StylesTable stylesTable = xssfReader.getStylesTable();
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        int index = 0;
-
-        while (iter.hasNext())
-        {
-            try (InputStream stream = iter.next())
-            {
-
-            }
-        }
-        return results;
-    }
-
     private boolean containsSheet(int idx)
     {
         for (TableData tk: this.config.getTableDatas())
@@ -142,12 +122,33 @@ public class ExcelProcessor
             if (result.afterCheck())
             {
                 XMLReader sheetParser = SAXHelper.newXMLReader();
-                XLSXFilter xlsxFilter = new XLSXFilter(this.batchSize, this.config, currentSheet);
-                ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxFilter, formatter, false);
+                XLSXHandler xlsxHandler = new XLSXHandler(this.batchSize, this.config, currentSheet);
+                ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxHandler, formatter, false);
                 sheetParser.setContentHandler(handler);
                 sheetParser.parse(sheetSource);
-                result.onListener(xlsxFilter.collectMap());
+                result.onListener(xlsxHandler.collectMap());
             }
+        }
+        catch (ParserConfigurationException e)
+        {
+            throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
+        }
+    }
+
+    private void processSheet(StylesTable styles,
+                              ReadOnlySharedStringsTable strings,
+                              InputStream inputStream)
+            throws IOException, SAXException
+    {
+        DataFormatter formatter = new DataFormatter();
+        InputSource sheetSource = new InputSource(inputStream);
+        try
+        {
+                XMLReader sheetParser = SAXHelper.newXMLReader();
+                XLSXHandler xlsxHandler = new XLSXHandler(this.batchSize, this.config);
+                ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxHandler, formatter, false);
+                sheetParser.setContentHandler(handler);
+                sheetParser.parse(sheetSource);
         }
         catch (ParserConfigurationException e)
         {

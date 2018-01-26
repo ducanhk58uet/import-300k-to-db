@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Created by GEMVN on 1/23/2018.
  */
-public class XLSXFilter implements SheetContentsHandler
+public class XLSXHandler implements SheetContentsHandler
 {
     private final int batchSize;
     private ECConfig config;
@@ -23,11 +23,17 @@ public class XLSXFilter implements SheetContentsHandler
     private Map<Integer, List<Cell>> collectMap = new LinkedHashMap<>(); //Row - List<Cell>
     private TableData tableData = null;
 
-    public XLSXFilter(int batchSize, ECConfig config, int currentSheet)
+    public XLSXHandler(int batchSize, ECConfig config, int currentSheet)
     {
         this.batchSize = batchSize;
         this.config = config;
         this.currentSheet = currentSheet;
+    }
+
+    public XLSXHandler(int batchSize, ECConfig config)
+    {
+        this.batchSize = batchSize;
+        this.config = config;
     }
 
     @Override
