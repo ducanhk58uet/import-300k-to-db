@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +99,26 @@ public class ExcelProcessor
         return sheetTable;
     }
 
+    public Map<Integer, List<Cell>> extractAngMerge() throws IOException, OpenXML4JException, SAXException
+    {
+        Map<Integer, List<Cell>> results = new LinkedHashMap<>();
+
+        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
+        XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
+        StylesTable stylesTable = xssfReader.getStylesTable();
+        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+        int index = 0;
+
+        while (iter.hasNext())
+        {
+            try (InputStream stream = iter.next())
+            {
+
+            }
+        }
+        return results;
+    }
+
     private boolean containsSheet(int idx)
     {
         for (TableData tk: this.config.getTableDatas())
@@ -133,5 +154,6 @@ public class ExcelProcessor
             throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
         }
     }
+
 
 }

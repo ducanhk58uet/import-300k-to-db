@@ -3,6 +3,7 @@ package io.yoobi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
+import io.yoobi.model.LinkSheet;
 import io.yoobi.model.TableData;
 import io.yoobi.xlsx.ExcelProcessor;
 
@@ -34,7 +35,12 @@ public class ApplyETL
                 config.tableDatas.add(tableData);
             }
 
-            System.out.println("Extract position Address: " + config.tableDatas.toString());
+            for (String s: config.getLinkSheet().split("},"))
+            {
+                if (s.isEmpty()) continue;
+                LinkSheet linkSheet = new LinkSheet(s);
+                config.getLinkSheets().add(linkSheet);
+            }
 
             switch (config.type)
             {

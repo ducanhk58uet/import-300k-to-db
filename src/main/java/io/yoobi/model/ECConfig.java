@@ -48,6 +48,9 @@ public class ECConfig
     @JsonIgnoreProperties
     public List<TableData> tableDatas = new ArrayList<>();
 
+    @JsonIgnoreProperties
+    public List<LinkSheet> linkSheets = new ArrayList<>();
+
     public String getImportTable()
     {
         return importTable;
@@ -166,6 +169,16 @@ public class ECConfig
     public void setTableDatas(List<TableData> tableDatas)
     {
         this.tableDatas = tableDatas;
+    }
+
+    public List<LinkSheet> getLinkSheets()
+    {
+        return linkSheets;
+    }
+
+    public void setLinkSheets(List<LinkSheet> linkSheets)
+    {
+        this.linkSheets = linkSheets;
     }
 
     @Override
