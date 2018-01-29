@@ -99,6 +99,36 @@ public class ExcelProcessor
         return sheetTable;
     }
 
+    public Map<Integer, List<Cell>> extractAngMerge() throws IOException, OpenXML4JException, SAXException
+    {
+        Map<Integer, List<Cell>> results = new LinkedHashMap<>();
+
+        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
+        XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
+        StylesTable stylesTable = xssfReader.getStylesTable();
+        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+        int index = 0;
+
+
+        for (LinkSheet lk: this.config.getLinkSheets())
+        {
+            while (iter.hasNext())
+            {
+                try (InputStream stream = iter.next())
+                {
+                    if (index == 0)
+                    {
+                        this.processSheet(stylesTable, strings, stream);
+                    }
+                }
+                ++index;
+            }
+        }
+
+        return results;
+    }
+
+
     private boolean containsSheet(int idx)
     {
         for (TableData tk: this.config.getTableDatas())

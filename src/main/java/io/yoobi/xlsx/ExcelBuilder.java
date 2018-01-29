@@ -37,11 +37,25 @@ public class ExcelBuilder
             String v1 = getValueFromLink(t2.get(rowNumber), column);
             if (v1.equals(value))
             {
-                return t2.get(rowNumber);
+                List<Cell> results = removeColumn(t2.get(rowNumber), column);
+                return results;
             }
         }
         return new ArrayList<>();
 
+    }
+
+    private static List<Cell> removeColumn(List<Cell> items, String column)
+    {
+        for (Cell cell: items)
+        {
+            if (cell.getColumn().equals(column))
+            {
+                items.remove(cell);
+            }
+        }
+
+        return items;
     }
 
     private static String getValueFromLink(List<Cell> cellList, String column)
@@ -53,6 +67,6 @@ public class ExcelBuilder
                 return ck.getValue().toString();
             }
         }
-        return null;
+        return "";
     }
 }

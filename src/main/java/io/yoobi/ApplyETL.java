@@ -81,13 +81,11 @@ public class ApplyETL
             //Test 01: Not link sheet
             if (TC == 1)
             {
-
                 Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract();
                 System.out.println("Choose sheet 1: " + dataTable.size());
                 //System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
                 Map<Integer, List<Cell>> results = ExcelBuilder.merge(dataTable.get(0), dataTable.get(1), config.getLinkSheets().get(0));
                 System.out.println("Data: \n" + mapper.writeValueAsString(results));
-
             }
 
             //Test 02: Has linksheet
