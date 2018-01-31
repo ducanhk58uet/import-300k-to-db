@@ -173,8 +173,8 @@ public class ApplyETL
 
         try
         {
-            CSVFileReader csv = new CSVFileReader(config, ',');
-            for(String[] row: csv.readRows(50))
+            CSVFileReader csv = new CSVFileReader(config);
+            for(String[] row: csv.readRows())
             {
                 for (String sk: row)
                 {

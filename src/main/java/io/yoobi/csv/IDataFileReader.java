@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface IDataFileReader
 {
-    List<String[]> readRows(int batchSize) throws Exception;
+    List<String[]> readRows() throws Exception;
 
     int rowNum();
 }
