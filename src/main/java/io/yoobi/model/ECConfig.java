@@ -45,6 +45,12 @@ public class ECConfig
     @JsonProperty(value = "path")
     public String path;
 
+    @JsonProperty(value = "batch_size")
+    private int batchSize;
+
+    @JsonProperty(value = "delimiter")
+    private String delimiter;
+
     @JsonIgnoreProperties
     public List<TableData> tableDatas = new ArrayList<>();
 
@@ -179,6 +185,26 @@ public class ECConfig
     public void setLinkSheets(List<LinkSheet> linkSheets)
     {
         this.linkSheets = linkSheets;
+    }
+
+    public int getBatchSize()
+    {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize)
+    {
+        this.batchSize = batchSize;
+    }
+
+    public String getDelimiter()
+    {
+        return delimiter;
+    }
+
+    public void setDelimiter(String delimiter)
+    {
+        this.delimiter = delimiter;
     }
 
     @Override

@@ -10,14 +10,15 @@ import java.util.List;
  */
 public class TableData
 {
-    public int sheetIdx;
-    public int startRow;
+    public Integer sheetIdx;
+    public Integer startRow;
     public List<String> columns;
 
     public TableData(String s)
     {
-        this.sheetIdx = Integer.parseInt(this.readValueByField(s, "S"));
-        this.startRow = Integer.parseInt(this.readValueByField(s, "R"));
+        s = s.replaceAll("\\s{2,}", "");
+        this.sheetIdx = parseInteger(this.readValueByField(s, "S"));
+        this.startRow = parseInteger(this.readValueByField(s, "R"));
         String ex1 = StringUtils.substringBetween(s, "[", "]");
         this.columns = Arrays.asList(ex1.split(","));
     }
@@ -25,6 +26,19 @@ public class TableData
     private String readValueByField(String vk, String pr)
     {
         return StringUtils.substringBetween(vk, pr + ":", ",");
+    }
+
+    private Integer parseInteger(String vk)
+    {
+        try
+        {
+            return Integer.parseInt(vk);
+        }
+        catch (Exception e)
+        {
+
+        }
+        return null;
     }
 
     public int getSheetIdx()
