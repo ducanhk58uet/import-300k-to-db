@@ -13,7 +13,8 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-==================================================================== */
+==================================================================== *//*
+
 
 package io.zinzin;
 
@@ -49,12 +50,14 @@ import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
+*/
 /**
  * A XLS -> CSV processor, that uses the MissingRecordAware
  * EventModel code to ensure it outputs all columns and rows.
  *
  * @author Nick Burch
- */
+ *//*
+
 public class XLS2CSVmra implements HSSFListener
 {
     private int minColumns;
@@ -64,14 +67,18 @@ public class XLS2CSVmra implements HSSFListener
     private int lastRowNumber;
     private int lastColumnNumber;
 
-    /**
+    */
+/**
      * Should we output the formula, or the value it has?
-     */
+     *//*
+
     private boolean outputFormulaValues = true;
 
-    /**
+    */
+/**
      * For parsing Formulas
-     */
+     *//*
+
     private SheetRecordCollectingListener workbookBuildingListener;
     private HSSFWorkbook stubWorkbook;
 
@@ -79,9 +86,11 @@ public class XLS2CSVmra implements HSSFListener
     private SSTRecord sstRecord;
     private FormatTrackingHSSFListener formatListener;
 
-    /**
+    */
+/**
      * So we known which sheet we're on
-     */
+     *//*
+
     private int sheetIndex = -1;
     private BoundSheetRecord[] orderedBSRs;
     private List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
@@ -91,13 +100,15 @@ public class XLS2CSVmra implements HSSFListener
     private int nextColumn;
     private boolean outputNextStringRecord;
 
-    /**
+    */
+/**
      * Creates a new XLS -> CSV converter
      *
      * @param fs         The POIFSFileSystem to process
      * @param output     The PrintStream to output the CSV to
      * @param minColumns The minimum number of columns to output, or -1 for no minimum
-     */
+     *//*
+
     public XLS2CSVmra(POIFSFileSystem fs, PrintStream output, int minColumns)
     {
         this.fs = fs;
@@ -105,12 +116,14 @@ public class XLS2CSVmra implements HSSFListener
         this.minColumns = minColumns;
     }
 
-    /**
+    */
+/**
      * Creates a new XLS -> CSV converter
      *
      * @param filename   The file to process
      * @param minColumns The minimum number of columns to output, or -1 for no minimum
-     */
+     *//*
+
     public XLS2CSVmra(String filename, int minColumns) throws IOException, FileNotFoundException
     {
         this(
@@ -120,9 +133,11 @@ public class XLS2CSVmra implements HSSFListener
         );
     }
 
-    /**
+    */
+/**
      * Initiates the processing of the XLS file to CSV
-     */
+     *//*
+
     public void process() throws IOException
     {
         MissingRecordAwareHSSFListener listener = new MissingRecordAwareHSSFListener(this);
@@ -144,10 +159,12 @@ public class XLS2CSVmra implements HSSFListener
         factory.processWorkbookEvents(request, fs);
     }
 
-    /**
+    */
+/**
      * Main HSSFListener method, processes events, and outputs the
      * CSV as the file is processed.
-     */
+     *//*
+
     @Override
     public void processRecord(Record record)
     {
@@ -339,7 +356,10 @@ public class XLS2CSVmra implements HSSFListener
                 }
                 for (int i = lastColumnNumber; i < (minColumns); i++)
 
-                    output.print(',');{
+                {
+                    output.print(',');
+                }
+                {
                 }
             }
 
@@ -369,4 +389,4 @@ public class XLS2CSVmra implements HSSFListener
         XLS2CSVmra xls2csv = new XLS2CSVmra(args[0], minColumns);
         xls2csv.process();
     }
-}
+}*/

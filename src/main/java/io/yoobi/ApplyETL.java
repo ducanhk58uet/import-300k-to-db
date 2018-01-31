@@ -5,11 +5,13 @@ import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
 import io.yoobi.model.LinkSheet;
 import io.yoobi.model.TableData;
+import io.yoobi.xls.XLSHandler;
 import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +20,7 @@ import java.util.Map;
  */
 public class ApplyETL
 {
-    public static final File FILE_CONFIG = FileManager.getDesktopFile("etc/config_2.json");
+    public static final File FILE_CONFIG = FileManager.getDesktopFile("etc/config_1.json");
     public static ObjectMapper mapper = new ObjectMapper();
     public static final int TC = 1;
 
@@ -83,15 +85,11 @@ public class ApplyETL
             {
                 Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract();
                 System.out.println("Choose sheet 1: " + dataTable.size());
-                //System.out.println("Data: \n" + mapper.writeValueAsString(dataTable));
-                Map<Integer, List<Cell>> results = ExcelBuilder.merge(dataTable.get(0), dataTable.get(1), config.getLinkSheets().get(0));
-                System.out.println("Data: \n" + mapper.writeValueAsString(results));
-            }
 
-            //Test 02: Has linksheet
-            if (TC == 2)
-            {
-                //ExcelProcessor.newInstance(f, 50, config).extractAngMerge();
+                System.out.println("Data: \n" + mapper.writeValueAsString(dataTable.get(0)));
+
+                //Map<Integer, List<Cell>> results = ExcelBuilder.merge(dataTable.get(0), dataTable.get(1), config.getLinkSheets().get(0));
+                //System.out.println("Data: \n" + mapper.writeValueAsString(results));
             }
 
         }
@@ -103,7 +101,30 @@ public class ApplyETL
 
     private static void extractExcelXLS(ECConfig config)
     {
-        //TODO
+        if (!config.tableDatas.isEmpty())
+        {
+            for (TableData tableData: config.tableDatas)
+            {
+                if (tableData.columns.size() != config.columns.size()) { return; }
+            }
+        }
+
+        try
+        {
+            XLSHandler xlsHandler = XLSHandler.with(config.getPath());
+            xlsHandler.process();
+            Map<Integer, List<Cell>> results = xlsHandler.getDataTable().get(0);
+            PrintStream out = new PrintStream(new File("C:\\Users\\GEMVN\\Desktop\\etc\\results.json"));
+            out.println(mapper.writeValueAsString(results));
+            out.close();
+            //System.out.println("Size: \n" + results.get(0).size());
+            //System.out.println("Size: \n" + results.get(1).size());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
     }
 
     private static void extractCVS(ECConfig config)

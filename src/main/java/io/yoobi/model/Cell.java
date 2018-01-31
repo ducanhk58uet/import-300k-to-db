@@ -39,4 +39,12 @@ public class Cell
         return this.address.replaceAll("[0-9]", "");
     }
 
+    @Override
+    public String toString()
+    {
+        return "Cell{" +
+                "address='" + address + '\'' +
+                ", value=" + value +
+                '}';
+    }
 }
