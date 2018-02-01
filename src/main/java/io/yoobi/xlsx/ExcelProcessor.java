@@ -134,7 +134,7 @@ public class ExcelProcessor
             if (result.afterCheck())
             {
                 XMLReader sheetParser = SAXHelper.newXMLReader();
-                XLSXHandler xlsxHandler = new XLSXHandler(this.batchSize, this.config, currentSheet);
+                XLSXHandler xlsxHandler = new XLSXHandler(this.config, currentSheet);
                 ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxHandler, formatter, false);
                 sheetParser.setContentHandler(handler);
                 sheetParser.parse(sheetSource);

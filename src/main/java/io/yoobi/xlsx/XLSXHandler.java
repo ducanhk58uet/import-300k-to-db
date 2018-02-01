@@ -21,24 +21,19 @@ public class XLSXHandler implements SheetContentsHandler
     private TableData tableData = null;
     private Set<String> headers = new LinkedHashSet<>();
 
-    public XLSXHandler(int batchSize, ECConfig config, int currentSheet)
+    public XLSXHandler(ECConfig config, int currentSheet)
     {
-        this.batchSize = batchSize;
         this.config = config;
         this.currentSheet = currentSheet;
+        this.batchSize = config.getBatchSize();
     }
 
-    public XLSXHandler(int batchSize, ECConfig config)
-    {
-        this.batchSize = batchSize;
-        this.config = config;
-    }
 
     @Override
     public void startRow(int i)
     {
         currentRow = i;
-        if(collectMap.size() >= batchSize) return;
+        if(batchSize > -1 && collectMap.size() >= batchSize) return;
 
         for (TableData _table: config.getTableDatas())
         {

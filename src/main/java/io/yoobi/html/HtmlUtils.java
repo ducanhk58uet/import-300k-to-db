@@ -41,6 +41,7 @@ public class HtmlUtils
 
     private static void successBuilder(StringBuilder sb, DataResponse response, int idx)
     {
+        sb.append("<h3>There are " + response.getData().get(idx).size() + " items</h3>");
         sb.append("<table border=1>");
         /**
          * Print table headers

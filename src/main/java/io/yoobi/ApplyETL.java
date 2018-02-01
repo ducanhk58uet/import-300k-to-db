@@ -87,7 +87,7 @@ public class ApplyETL
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLSX(ECConfig config)
             throws Exception
     {
-        if(checkMappingColumns(config))
+        if(!checkMappingColumns(config))
         {
             throw new MappingColumnException("XLSX Can not mapping column with this config");
         }
@@ -128,7 +128,7 @@ public class ApplyETL
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLS(ECConfig config)
             throws MappingColumnException, ParsingErrorException
     {
-        if(checkMappingColumns(config))
+        if(!checkMappingColumns(config))
         {
             throw new MappingColumnException("XLSX Can not mapping column with this config");
         }
