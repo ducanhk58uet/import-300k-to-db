@@ -1,12 +1,15 @@
 package io.yoobi.csv;
 
 import com.opencsv.CSVReader;
+import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
 import io.yoobi.model.TableData;
 
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by GEMVN on 1/31/2018.
@@ -35,25 +38,31 @@ public class CSVFileReader implements IDataFileReader
     }
 
     @Override
-    public List<String[]> readRows()
+    public Map<Integer, List<Cell>> readRows()
     throws Exception
     {
         int batchSize = this.config.getBatchSize();
-        List<String[]> dataRows = (tableData == null) ? getList(batchSize) : getListByQuery(batchSize);
+        Map<Integer, List<Cell>> dataRows = (tableData == null) ? getList(batchSize) : getListByQuery(batchSize);
         return dataRows;
     }
 
-    public List<String[]> getList(int batchSize)
+    public Map<Integer, List<Cell>> getList(int batchSize)
     throws Exception
     {
-        List<String[]> dataRows = new ArrayList<>();
+        Map<Integer, List<Cell>> dataRows = new LinkedHashMap<>();
         if (batchSize > 0)
         {
             String[] row;
             while((row = reader.readNext()) != null)
             {
                 rowNum++;
-                dataRows.add(row);
+                List<Cell> cellList = new ArrayList<>();
+                for (int i = 0; i < row.length; i++)
+                {
+                    Cell cell = new Cell(String.valueOf(i), row[i]);
+                    cellList.add(cell);
+                }
+                dataRows.put(rowNum, cellList);
                 if (dataRows.size() > batchSize)
                 {
                     break;
@@ -63,10 +72,10 @@ public class CSVFileReader implements IDataFileReader
         return dataRows;
     }
 
-    public List<String[]> getListByQuery(int batchSize)
+    public Map<Integer, List<Cell>> getListByQuery(int batchSize)
     throws Exception
     {
-        List<String[]> dataRows = new ArrayList<>();
+        Map<Integer, List<Cell>> dataRows = new LinkedHashMap<>();
         if (batchSize > 0)
         {
             String[] row;
@@ -75,16 +84,17 @@ public class CSVFileReader implements IDataFileReader
                 rowNum++;
                 if (rowNum < tableData.getStartRow()) continue;
                 String[] rowFilter = new String[tableData.getColumns().size()];
-                int index = 0;
+
+                List<Cell> cellList = new ArrayList<>();
                 for (int idx = 0; idx < row.length; idx++)
                 {
                     if (tableData.getColumns().contains(String.valueOf(idx)))
                     {
-                        rowFilter[index] = row[idx];
-                        index++;
+                        Cell cell = new Cell(String.valueOf(idx), row[idx]);
+                        cellList.add(cell);
                     }
                 }
-                dataRows.add(rowFilter);
+                dataRows.put(rowNum, cellList);
                 if (dataRows.size() > batchSize)
                 {
                     break;

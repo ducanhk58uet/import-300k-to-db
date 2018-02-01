@@ -40,18 +40,18 @@ public class ExcelProcessor
     private Map<Integer, Map<Integer, List<Cell>>> sheetTable = new HashMap<>();
 
 
-    private ExcelProcessor(OPCPackage pkg, int batchSize, ECConfig config)
+    private ExcelProcessor(OPCPackage pkg, ECConfig config)
     {
         this.xlsxPackage = pkg;
-        this.batchSize = batchSize;
+        this.batchSize = config.getBatchSize();
         this.config = config;
     }
 
-    public static ExcelProcessor newInstance(File xlsxFile, int batchSize, ECConfig config)
+    public static ExcelProcessor newInstance(File xlsxFile, ECConfig config)
     throws InvalidFormatException
     {
         OPCPackage p = OPCPackage.open(xlsxFile.getPath(), PackageAccess.READ);
-        return new ExcelProcessor(p, batchSize, config);
+        return new ExcelProcessor(p, config);
     }
 
     /**

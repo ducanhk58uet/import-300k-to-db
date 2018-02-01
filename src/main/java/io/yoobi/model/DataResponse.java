@@ -1,5 +1,6 @@
 package io.yoobi.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +11,7 @@ public class DataResponse
 {
     private int errorCode;
     private String message;
-    private List<String> headers;
+    private List<String> headers = new ArrayList<>();
     private Map<Integer, Map<Integer, List<Cell>>> data;
 
     public DataResponse() {}

@@ -4,14 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yoobi.csv.CSVFileReader;
 import io.yoobi.exception.MappingColumnException;
 import io.yoobi.exception.MergingErrorException;
+import io.yoobi.exception.ParsingErrorException;
 import io.yoobi.model.*;
 import io.yoobi.xls.XLSHandler;
+import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
-import org.bouncycastle.asn1.ocsp.ResponseData;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,34 +24,51 @@ public class ApplyETL
 {
     public static ObjectMapper mapper = new ObjectMapper();
 
-    public static void execute(File filename)
+    public static DataResponse execute(File filename)
     {
+
+        DataResponse response = new DataResponse();
         try
         {
             ECConfig config = mapper.readValue(filename, ECConfig.class);
             System.out.println("Read config: " + config);
-            execute(config);
+            Map<Integer, Map<Integer, List<Cell>>> data = execute(config);
+            response.setData(data);
+            response.setErrorCode(0);
         }
         catch (MappingColumnException e1)
         {
+            response.setErrorCode(1);
+            response.setMessage(e1.getMessage());
             e1.printStackTrace();
         }
         catch (MergingErrorException e2)
         {
+            response.setErrorCode(2);
+            response.setMessage(e2.getMessage());
             e2.printStackTrace();
         }
         catch (IOException e3)
         {
+            response.setErrorCode(3);
+            response.setMessage(e3.getMessage());
             e3.printStackTrace();
         }
+        catch (ParsingErrorException e4)
+        {
+            response.setErrorCode(4);
+            response.setMessage(e4.getMessage());
+            e4.printStackTrace();
+        }
 
+        return response;
     }
 
-    public static void execute(ECConfig config)
-    throws MappingColumnException, MergingErrorException, IOException
+    public static Map<Integer, Map<Integer, List<Cell>>> execute(ECConfig config)
+    throws MappingColumnException, MergingErrorException, IOException, ParsingErrorException
     {
 
-        System.out.println("Read config: " + config);
+        Map<Integer, Map<Integer, List<Cell>>> results = new LinkedHashMap<>();
 
         for (String s: config.positionAddressPattern.split("},"))
         {
@@ -68,19 +87,20 @@ public class ApplyETL
         switch (config.type)
         {
             case "xlsx":
-                extractExcelXLSX(config);
+                results = extractExcelXLSX(config);
                 break;
             case "xls":
-                extractExcelXLS(config);
+                results = extractExcelXLS(config);
                 break;
             case "csv":
-                extractCVS(config);
+                results = extractCVS(config);
                 break;
         }
+        return results;
     }
 
-    private static void extractExcelXLSX(ECConfig config)
-    throws MappingColumnException
+    private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLSX(ECConfig config)
+            throws MappingColumnException, ParsingErrorException
     {
         if (!config.tableDatas.isEmpty())
         {
@@ -93,35 +113,36 @@ public class ApplyETL
             }
         }
 
-        //Step 1: Get extract date time with cofig
-        //Step 2: Get filter data with config
         try
         {
             File f = new File(config.getPath());
+            Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, config).extract();
             //Not link sheet
             if (config.getLinkSheet() == null || config.getLinkSheet().isEmpty())
             {
-                Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, 50, config).extract();
-                System.out.println("Choose sheet 1: " + dataTable.size());
-
-                System.out.println("Data: \n" + mapper.writeValueAsString(dataTable.get(0)));
-
-                //Map<Integer, List<Cell>> results = ExcelBuilder.merge(dataTable.get(0), dataTable.get(1), config.getLinkSheets().get(0));
-                //System.out.println("Data: \n" + mapper.writeValueAsString(results));
+                return dataTable;
             }
             else
             {
+                //TODO - need handle implement merging
+                Map<Integer, List<Cell>> results = new LinkedHashMap<>();
+//                for (LinkSheet lk: config.getLinkSheets())
+//                {
+//                    ExcelBuilder.merge(dataTable.get(lk.getSourceColumn()), dataTable.get(lk.getDestinationSheet()), lk);
+//                }
 
+                return null;
             }
 
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new ParsingErrorException(e.getMessage());
         }
     }
 
-    private static void extractExcelXLS(ECConfig config) throws MappingColumnException
+    private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLS(ECConfig config)
+            throws MappingColumnException, ParsingErrorException
     {
         if (!config.tableDatas.isEmpty())
         {
@@ -135,26 +156,22 @@ public class ApplyETL
 
         try
         {
-            long startTime = System.currentTimeMillis();
             XLSHandler xlsHandler = XLSHandler.with(config.getPath());
             xlsHandler.process();
-            Map<Integer, List<Cell>> results = xlsHandler.getDataTable().get(0);
-            PrintStream out = new PrintStream(new File("C:\\Users\\GEMVN\\Desktop\\etc\\results.json"));
-            mapper.writeValue(out, results);
-            out.close();
-            System.out.println("Lose time: " + (System.currentTimeMillis() - startTime));
-            //System.out.println("Size: \n" + results.get(0).size());
-            //System.out.println("Size: \n" + results.get(1).size());
+            Map<Integer, Map<Integer, List<Cell>>> results = xlsHandler.getDataTable();
+            //TODO - need handle implement merging
+            return results;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new ParsingErrorException(e.getMessage());
         }
 
     }
 
-    private static void extractCVS(ECConfig config)
-    throws MappingColumnException, MergingErrorException {
+    private static Map<Integer, Map<Integer, List<Cell>>> extractCVS(ECConfig config)
+    throws MappingColumnException, MergingErrorException, ParsingErrorException
+    {
         if (!config.tableDatas.isEmpty())
         {
             for (TableData tableData: config.tableDatas)
@@ -174,18 +191,13 @@ public class ApplyETL
         try
         {
             CSVFileReader csv = new CSVFileReader(config);
-            for(String[] row: csv.readRows())
-            {
-                for (String sk: row)
-                {
-                    System.out.print(sk +"\t");
-                }
-                System.out.println("\n");
-            }
+            Map<Integer, Map<Integer, List<Cell>>> results = new HashMap<>();
+            results.put(0, csv.readRows());
+            return results;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new ParsingErrorException(e.getMessage());
         }
 
     }
