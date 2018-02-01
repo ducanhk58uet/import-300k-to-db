@@ -1,13 +1,16 @@
 package io.yoobi.xlsx;
 
 
+import io.yoobi.exception.DateParsingException;
+import io.yoobi.exception.PositionNotFoundException;
 import io.yoobi.model.Cell;
 import io.yoobi.model.LinkSheet;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by GEMVN on 1/23/2018.
@@ -28,6 +31,79 @@ public class ExcelBuilder
         }
 
         return results;
+    }
+
+    public static boolean isValidPair(String position, String pattern)
+    {
+        String rxg = "^\\d+:\\w+\\d+$";
+        Matcher matcher = Pattern.compile(rxg).matcher(position);
+        if (!matcher.find())
+        {
+            return false;
+        }
+
+        if (pattern == null || pattern.isEmpty())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static String getValueFromConfig(Map<Integer, Map<Integer, List<Cell>>> sheetTable, String position)
+    throws PositionNotFoundException
+    {
+        String[] p = position.split(":");
+        int idx = Integer.parseInt(p[0]);
+        String address = p[1];
+        Map<Integer, List<Cell>> table = sheetTable.get(idx);
+        for (Integer rowNum: table.keySet())
+        {
+            for (Cell cell: table.get(rowNum))
+            {
+                if (cell.getAddress().equals(address))
+                {
+                    return cell.getValue().toString();
+                }
+            }
+        }
+        throw new PositionNotFoundException("Cannot found postion with for parse date");
+    }
+
+    public static Date parsingDateSimple(String vk, String p, final int idx)
+    throws ParseException, DateParsingException
+    {
+        String rxg = "(\\d+(/|-)\\d+(/|-)\\d+)|(\\d+(/|-)\\d+)";
+        Matcher matcher = Pattern.compile(rxg).matcher(vk);
+        int index = 0;
+        while (matcher.find())
+        {
+            if (index == idx)
+            {
+                return (new SimpleDateFormat(p)).parse(matcher.group());
+            }
+            index++;
+        }
+        throw new DateParsingException("Cannot parse date, invalid format");
+    }
+
+
+    public static void main(String[] args)
+    {
+        System.out.println(isValidPair("0:A9", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0:AZ99", "dd/MM/yyyy"));
+        System.out.println(isValidPair("1:AZ99", "dd/MM/yyyy"));
+        System.out.println(isValidPair("1:AZZ999", "dd/MM/yyyy"));
+
+        System.out.println(isValidPair("A9", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0:A9:A", "dd/MM/yyyy"));
+        System.out.println(isValidPair("ABC", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0A9", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0:A9", ""));
+        System.out.println(isValidPair("0:9", "dd/MM/yyyy"));
+        System.out.println(isValidPair("0:A", "dd/MM/yyyy"));
+
     }
 
     private static List<Cell> getOneRowByValue(Map<Integer, List<Cell>> t2, String column, String value)

@@ -2,16 +2,15 @@ package io.yoobi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yoobi.csv.CSVFileReader;
-import io.yoobi.exception.MappingColumnException;
-import io.yoobi.exception.MergingErrorException;
-import io.yoobi.exception.ParsingErrorException;
+import io.yoobi.exception.*;
 import io.yoobi.model.*;
 import io.yoobi.xls.XLSHandler;
-import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -21,6 +20,7 @@ public class ApplyETL
 {
     private static ObjectMapper mapper = new ObjectMapper();
     private static Map<Integer, Set<String>> headers = new LinkedHashMap<>();
+    private static List<Date> dateList = new ArrayList<>();
 
     public static DataResponse execute(File filename)
     {
@@ -36,39 +36,22 @@ public class ApplyETL
                                     .setData(data)
                                     .setMessage("SUCCESS")
                                     .setErrorCode(0)
+                                    .setDateList(dateList)
                                     .setHeaders(headers).build();
 
         }
-        catch (MappingColumnException e1)
+        catch (Exception e)
         {
             response.setErrorCode(1);
-            response.setMessage(e1.getMessage());
-            e1.printStackTrace();
-        }
-        catch (MergingErrorException e2)
-        {
-            response.setErrorCode(2);
-            response.setMessage(e2.getMessage());
-            e2.printStackTrace();
-        }
-        catch (IOException e3)
-        {
-            response.setErrorCode(3);
-            response.setMessage(e3.getMessage());
-            e3.printStackTrace();
-        }
-        catch (ParsingErrorException e4)
-        {
-            response.setErrorCode(4);
-            response.setMessage(e4.getMessage());
-            e4.printStackTrace();
+            response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
 
         return response;
     }
 
     public static Map<Integer, Map<Integer, List<Cell>>> execute(ECConfig config)
-    throws MappingColumnException, MergingErrorException, IOException, ParsingErrorException
+    throws Exception
     {
 
         Map<Integer, Map<Integer, List<Cell>>> results = new LinkedHashMap<>();
@@ -103,7 +86,7 @@ public class ApplyETL
     }
 
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLSX(ECConfig config)
-            throws MappingColumnException, ParsingErrorException
+            throws Exception
     {
         if (!config.tableDatas.isEmpty())
         {
@@ -116,41 +99,43 @@ public class ApplyETL
             }
         }
 
-        try
+
+        File f = new File(config.getPath());
+
+        //init process extraction excel xlsx
+        ExcelProcessor processor = ExcelProcessor.newInstance(f, config);
+
+        //processor call extract table
+        Map<Integer, Map<Integer, List<Cell>>> dataTable = processor.extract();
+
+        //processor cell extract date
+        if (config.getPositionStartDate() != null)
         {
-            File f = new File(config.getPath());
+            dateList = processor.extractDateList();
+        }
 
-            //init process extraction excel xlsx
-            ExcelProcessor processor = ExcelProcessor.newInstance(f, config);
+        //processor cell extract headers
+        headers = processor.getCollectHeaders();
 
-            //processor cell extract headers
-            headers = processor.getCollectHeaders();
-
-            //processor call extract table
-            Map<Integer, Map<Integer, List<Cell>>> dataTable = processor.extract();
-
-            //Not link sheet
-            if (config.getLinkSheet() == null || config.getLinkSheet().isEmpty())
-            {
-                return dataTable;
-            }
-            else
-            {
-                //TODO - need handle implement merging
-                Map<Integer, List<Cell>> results = new LinkedHashMap<>();
+        //Not link sheet
+        if (config.getLinkSheet() == null || config.getLinkSheet().isEmpty())
+        {
+            return dataTable;
+        }
+        else
+        {
+            //TODO - need handle implement merging
+            Map<Integer, List<Cell>> results = new LinkedHashMap<>();
 //                for (LinkSheet lk: config.getLinkSheets())
 //                {
 //                    ExcelBuilder.merge(dataTable.get(lk.getSourceColumn()), dataTable.get(lk.getDestinationSheet()), lk);
 //                }
 
-                return null;
-            }
+            return null;
+        }
 
-        }
-        catch (Exception e)
-        {
-            throw new ParsingErrorException(e.getMessage());
-        }
+
+
     }
 
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLS(ECConfig config)

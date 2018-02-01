@@ -1,5 +1,7 @@
 package io.yoobi.xlsx;
 
+import io.yoobi.exception.DateParsingException;
+import io.yoobi.exception.PositionNotFoundException;
 import io.yoobi.intefaces.PredictResult;
 import io.yoobi.model.Cell;
 import io.yoobi.model.ECConfig;
@@ -24,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -36,6 +39,7 @@ public class ExcelProcessor
     private OPCPackage xlsxPackage;
     private Map<Integer, Map<Integer, List<Cell>>> sheetTable = new HashMap<>();
     private Map<Integer, Set<String>> collectHeaders = new LinkedHashMap<>();
+    private List<Date> dateList = new ArrayList<>();
 
     private ExcelProcessor(OPCPackage pkg, ECConfig config)
     {
@@ -134,7 +138,11 @@ public class ExcelProcessor
                 ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxHandler, formatter, false);
                 sheetParser.setContentHandler(handler);
                 sheetParser.parse(sheetSource);
+
+                //callback map data for each sheet
                 result.onListener(xlsxHandler.collectMap());
+
+                //callback get headers
                 result.onHeaders(xlsxHandler.getHeaders());
             }
         }
@@ -145,5 +153,40 @@ public class ExcelProcessor
     }
 
     public Map<Integer, Set<String>> getCollectHeaders() { return this.collectHeaders; }
+
+    public List<Date> extractDateList()
+    throws DateParsingException, PositionNotFoundException, ParseException
+    {
+        List<Date> dateList = new ArrayList<>();
+        Date sDate = null;
+        Date eDate = null;
+        if (config.getPositionStartDate() == null || config.getPositionStartDate().isEmpty())
+        {
+            //Neu khong dien startDate, mac dinh tra ve du lieu rong
+            return dateList;
+        }
+        else if (config.getPositionEndDate() != null && !config.getPositionEndDate().isEmpty())
+        {
+            //Neu da dien endDate, can kiem tra tinh hop le ve cu phap
+            boolean hasEndDate = ExcelBuilder.isValidPair(config.getPositionEndDate(), config.getFormatEndDate());
+            if (!hasEndDate) throw new DateParsingException("Syntax error! Cannot parse StartDate. Simple valid syntax is: '0:A9' with 0 is index of sheet and A9 is Cell");
+
+            //Sau khi da hop le cua End Date, lay du lieu date theo pattern
+            String valueDate = ExcelBuilder.getValueFromConfig(sheetTable, config.getPositionEndDate());
+            eDate = ExcelBuilder.parsingDateSimple(valueDate, config.getFormatEndDate(), 1);
+            dateList.add(eDate);
+        }
+
+        //Neu da dien startDate, can kiem tra tinh hop le va cu phap
+        boolean hasStartDate = ExcelBuilder.isValidPair(config.getPositionStartDate(), config.getFormatStartDate());
+        if (!hasStartDate) throw new DateParsingException("Syntax error! Cannot parse StartDate. Simple valid syntax is: '0:A9' with 0 is index of sheet and A9 is Cell");
+
+        //Sau khi da kiem tra tinh hop le cua Start Date, lay du lieu start date theo pattern
+        String valueDate = ExcelBuilder.getValueFromConfig(sheetTable, config.getPositionStartDate());
+        sDate = ExcelBuilder.parsingDateSimple(valueDate, config.getFormatStartDate(), 0);
+        dateList.add(sDate);
+
+        return dateList;
+    }
 
 }

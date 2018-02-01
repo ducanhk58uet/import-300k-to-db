@@ -11,6 +11,7 @@ public class DataResponse
     private String message;
     private Map<Integer, Set<String>> headers = new LinkedHashMap<>();
     private Map<Integer, Map<Integer, List<Cell>>> data;
+    private List<Date> dateList = new ArrayList<>();
 
     public DataResponse() {}
 
@@ -20,6 +21,7 @@ public class DataResponse
         this.message = builder.message;
         this.headers = builder.headers;
         this.data = builder.data;
+        this.dateList = builder.dateList;
     }
 
     public static DataResponseBuilder newInstance()
@@ -34,7 +36,7 @@ public class DataResponse
         private String message;
         private Map<Integer, Set<String>> headers;
         private Map<Integer, Map<Integer, List<Cell>>> data;
-
+        private List<Date> dateList = new ArrayList<>();
 
         public DataResponseBuilder() {}
 
@@ -59,6 +61,12 @@ public class DataResponse
         public DataResponseBuilder setData(Map<Integer, Map<Integer, List<Cell>>> data)
         {
             this.data = data;
+            return this;
+        }
+
+        public DataResponseBuilder setDateList(List<Date> dateList)
+        {
+            this.dateList = dateList;
             return this;
         }
 
@@ -106,5 +114,15 @@ public class DataResponse
     public void setData(Map<Integer, Map<Integer, List<Cell>>> data)
     {
         this.data = data;
+    }
+
+    public List<Date> getDateList()
+    {
+        return dateList;
+    }
+
+    public void setDateList(List<Date> dateList)
+    {
+        this.dateList = dateList;
     }
 }
