@@ -20,11 +20,12 @@ public class YoobiTest
     public static void main(String[] args)
     throws Exception
     {
-        File file = FileManager.getDesktopFile("etc/config_1.json");
+        File file = FileManager.getDesktopFile("etc/config_2_merging.json");
         DataResponse response = ApplyETL.execute(file);
 
-        PrintStream stream = new PrintStream(output);
+        System.out.println("**************** RESPONSE RESULT *********************");
 
+        PrintStream stream = new PrintStream(output);
         if (!response.getDateList().isEmpty())
         {
             for (Date date: response.getDateList())
@@ -33,7 +34,7 @@ public class YoobiTest
             }
         }
 
-        HtmlUtils.printHtml(stream, response, 1);
+        HtmlUtils.printHtml(stream, response, 0);
         Desktop.getDesktop().open(output);
     }
 }

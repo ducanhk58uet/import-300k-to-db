@@ -5,12 +5,11 @@ import io.yoobi.csv.CSVFileReader;
 import io.yoobi.exception.*;
 import io.yoobi.model.*;
 import io.yoobi.xls.XLSHandler;
+import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -88,17 +87,10 @@ public class ApplyETL
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLSX(ECConfig config)
             throws Exception
     {
-        if (!config.tableDatas.isEmpty())
+        if(checkMappingColumns(config))
         {
-            for (TableData tableData: config.tableDatas)
-            {
-                if (tableData.columns.size() != config.columns.size())
-                {
-                    throw new MappingColumnException("XLSX Can not mapping column with this config");
-                }
-            }
+            throw new MappingColumnException("XLSX Can not mapping column with this config");
         }
-
 
         File f = new File(config.getPath());
 
@@ -114,41 +106,31 @@ public class ApplyETL
             dateList = processor.extractDateList();
         }
 
-        //processor cell extract headers
         headers = processor.getCollectHeaders();
-
         //Not link sheet
         if (config.getLinkSheet() == null || config.getLinkSheet().isEmpty())
         {
+            //processor cell extract headers
+
             return dataTable;
         }
         else
         {
-            //TODO - need handle implement merging
-            Map<Integer, List<Cell>> results = new LinkedHashMap<>();
-//                for (LinkSheet lk: config.getLinkSheets())
-//                {
-//                    ExcelBuilder.merge(dataTable.get(lk.getSourceColumn()), dataTable.get(lk.getDestinationSheet()), lk);
-//                }
+            Map<Integer, List<Cell>> mergeTable = ExcelBuilder.mergeMulti(dataTable, config.getLinkSheets());
+            Map<Integer, Map<Integer, List<Cell>>> results = new LinkedHashMap<>();
+            results.put(0, mergeTable);
 
-            return null;
+            headers = ExcelBuilder.mergeHeaders(headers, config.getLinkSheets());
+            return results;
         }
-
-
-
     }
 
     private static Map<Integer, Map<Integer, List<Cell>>> extractExcelXLS(ECConfig config)
             throws MappingColumnException, ParsingErrorException
     {
-        if (!config.tableDatas.isEmpty())
+        if(checkMappingColumns(config))
         {
-            for (TableData tableData: config.tableDatas)
-            {
-                if (tableData.columns.size() != config.columns.size()) {
-                    throw new MappingColumnException("XLS Can not mapping column with this config");
-                }
-            }
+            throw new MappingColumnException("XLSX Can not mapping column with this config");
         }
 
         try
@@ -164,6 +146,29 @@ public class ApplyETL
             throw new ParsingErrorException(e.getMessage());
         }
 
+    }
+
+    private static boolean checkMappingColumns(ECConfig config)
+    {
+        int totalColumn = 0;
+        if (!config.tableDatas.isEmpty())
+        {
+            for (TableData tableData: config.tableDatas)
+            {
+                totalColumn += tableData.getColumns().size();
+            }
+
+            if (config.getTableDatas().size() > 1)
+            {
+                totalColumn = totalColumn - config.getTableDatas().size() + 1;
+            }
+
+            if (totalColumn != config.columns.size())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Map<Integer, Map<Integer, List<Cell>>> extractCVS(ECConfig config)

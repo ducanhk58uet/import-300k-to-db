@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class ExcelBuilder
 {
-    public static Map<Integer, List<Cell>> merge(Map<Integer, List<Cell>> t1, Map<Integer, List<Cell>> t2, LinkSheet link)
+    public static Map<Integer, List<Cell>> mergeSingle(Map<Integer, List<Cell>> t1, Map<Integer, List<Cell>> t2, LinkSheet link)
     {
         Map<Integer, List<Cell>> results = new LinkedHashMap<>();
 
@@ -28,6 +28,27 @@ public class ExcelBuilder
             t1.get(rowNumber).addAll(items);
             List<Cell> cellFullList = t1.get(rowNumber);
             results.put(rowNumber, cellFullList);
+        }
+
+        return results;
+    }
+
+    public static Map<Integer, List<Cell>> mergeMulti(Map<Integer, Map<Integer, List<Cell>>> sheetTable, List<LinkSheet> linkSheets)
+    {
+        Map<Integer, List<Cell>> results = new LinkedHashMap<>();
+
+
+        for (int i = 0; i < linkSheets.size(); i++)
+        {
+            LinkSheet lk = linkSheets.get(i);
+            if (i == 0)
+            {
+                results = mergeSingle(sheetTable.get(lk.getSourceSheet()), sheetTable.get(lk.getDestinationSheet()), lk);
+            }
+            else if (i > 0)
+            {
+                results = mergeSingle(results, sheetTable.get(lk.getDestinationSheet()), lk);
+            }
         }
 
         return results;
@@ -129,6 +150,7 @@ public class ExcelBuilder
             if (cell.getColumn().equals(column))
             {
                 items.remove(cell);
+                return items;
             }
         }
 
@@ -145,5 +167,24 @@ public class ExcelBuilder
             }
         }
         return "";
+    }
+
+    public static Map<Integer, Set<String>> mergeHeaders(Map<Integer, Set<String>> collectHeaders, List<LinkSheet> linkSheets)
+    {
+        Set<String> headers = collectHeaders.get(0);
+        for (LinkSheet lk: linkSheets)
+        {
+            String column = lk.getDestinationSheet() + ":" + lk.getSourceColumn();
+            for (String hk: collectHeaders.get(lk.getDestinationSheet()))
+            {
+                if (!hk.equals(column))
+                {
+                    headers.add(hk);
+                }
+            }
+        }
+        Map<Integer, Set<String>> results = new LinkedHashMap<>();
+        results.put(0, headers);
+        return results;
     }
 }
