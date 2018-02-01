@@ -84,7 +84,8 @@ public class ExcelBuilder
             }
             index++;
         }
-        throw new DateParsingException("Cannot parse date, invalid format");
+
+        return new SimpleDateFormat(p).parse(vk);
     }
 
 
