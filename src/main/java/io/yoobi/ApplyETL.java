@@ -12,17 +12,15 @@ import io.yoobi.xlsx.ExcelProcessor;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by GEMVN on 1/19/2018.
  */
 public class ApplyETL
 {
-    public static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper = new ObjectMapper();
+    private static Map<Integer, Set<String>> headers = new LinkedHashMap<>();
 
     public static DataResponse execute(File filename)
     {
@@ -33,8 +31,13 @@ public class ApplyETL
             ECConfig config = mapper.readValue(filename, ECConfig.class);
             System.out.println("Read config: " + config);
             Map<Integer, Map<Integer, List<Cell>>> data = execute(config);
-            response.setData(data);
-            response.setErrorCode(0);
+
+            response = DataResponse.newInstance()
+                                    .setData(data)
+                                    .setMessage("SUCCESS")
+                                    .setErrorCode(0)
+                                    .setHeaders(headers).build();
+
         }
         catch (MappingColumnException e1)
         {
@@ -116,7 +119,16 @@ public class ApplyETL
         try
         {
             File f = new File(config.getPath());
-            Map<Integer, Map<Integer, List<Cell>>> dataTable = ExcelProcessor.newInstance(f, config).extract();
+
+            //init process extraction excel xlsx
+            ExcelProcessor processor = ExcelProcessor.newInstance(f, config);
+
+            //processor cell extract headers
+            headers = processor.getCollectHeaders();
+
+            //processor call extract table
+            Map<Integer, Map<Integer, List<Cell>>> dataTable = processor.extract();
+
             //Not link sheet
             if (config.getLinkSheet() == null || config.getLinkSheet().isEmpty())
             {

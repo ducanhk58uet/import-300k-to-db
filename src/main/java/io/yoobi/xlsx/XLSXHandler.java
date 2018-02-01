@@ -6,10 +6,7 @@ import io.yoobi.model.TableData;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by GEMVN on 1/23/2018.
@@ -22,6 +19,7 @@ public class XLSXHandler implements SheetContentsHandler
     private int currentSheet = -1;
     private Map<Integer, List<Cell>> collectMap = new LinkedHashMap<>(); //Row - List<Cell>
     private TableData tableData = null;
+    private Set<String> headers = new LinkedHashSet<>();
 
     public XLSXHandler(int batchSize, ECConfig config, int currentSheet)
     {
@@ -79,12 +77,16 @@ public class XLSXHandler implements SheetContentsHandler
             {
                 if (tableData.getColumns().contains(s.replaceAll("[0-9]", "")))
                 {
-                    collectMap.get(currentRow).add(new Cell(s, s1));
+                    Cell cell = new Cell(s ,s1);
+                    collectMap.get(currentRow).add(cell);
+                    headers.add(currentSheet + ":" + cell.getColumn());
                 }
             }
             else
             {
-                collectMap.get(currentRow).add(new Cell(s, s1));
+                Cell cell = new Cell(s ,s1);
+                collectMap.get(currentRow).add(cell);
+                headers.add(currentSheet + ":" + cell.getColumn());
             }
 
         }
@@ -99,6 +101,11 @@ public class XLSXHandler implements SheetContentsHandler
     public Map<Integer, List<Cell>> collectMap()
     {
         return collectMap;
+    }
+
+    public Set<String> getHeaders()
+    {
+        return this.headers;
     }
 
 }

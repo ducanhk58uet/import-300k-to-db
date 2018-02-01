@@ -24,10 +24,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by GEMVN on 1/22/2018.
@@ -38,7 +35,7 @@ public class ExcelProcessor
     private final int batchSize;
     private OPCPackage xlsxPackage;
     private Map<Integer, Map<Integer, List<Cell>>> sheetTable = new HashMap<>();
-
+    private Map<Integer, Set<String>> collectHeaders = new LinkedHashMap<>();
 
     private ExcelProcessor(OPCPackage pkg, ECConfig config)
     {
@@ -91,6 +88,17 @@ public class ExcelProcessor
                     {
                         sheetTable.put(idx, table);
                     }
+
+                    @Override
+                    public void onHeaders(Set<String> header)
+                    {
+                        Set<String> results = new LinkedHashSet<>();
+                        for (String hk: header)
+                        {
+                            results.add(hk);
+                        }
+                        collectHeaders.put(idx, results);
+                    }
                 });
             }
             ++index;
@@ -98,36 +106,6 @@ public class ExcelProcessor
 
         return sheetTable;
     }
-
-    public Map<Integer, List<Cell>> extractAngMerge() throws IOException, OpenXML4JException, SAXException
-    {
-        Map<Integer, List<Cell>> results = new LinkedHashMap<>();
-
-        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
-        XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
-        StylesTable stylesTable = xssfReader.getStylesTable();
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        int index = 0;
-
-
-        for (LinkSheet lk: this.config.getLinkSheets())
-        {
-            while (iter.hasNext())
-            {
-                try (InputStream stream = iter.next())
-                {
-                    if (index == 0)
-                    {
-                        this.processSheet(stylesTable, strings, stream);
-                    }
-                }
-                ++index;
-            }
-        }
-
-        return results;
-    }
-
 
     private boolean containsSheet(int idx)
     {
@@ -157,6 +135,7 @@ public class ExcelProcessor
                 sheetParser.setContentHandler(handler);
                 sheetParser.parse(sheetSource);
                 result.onListener(xlsxHandler.collectMap());
+                result.onHeaders(xlsxHandler.getHeaders());
             }
         }
         catch (ParserConfigurationException e)
@@ -165,26 +144,6 @@ public class ExcelProcessor
         }
     }
 
-    private void processSheet(StylesTable styles,
-                              ReadOnlySharedStringsTable strings,
-                              InputStream inputStream)
-            throws IOException, SAXException
-    {
-        DataFormatter formatter = new DataFormatter();
-        InputSource sheetSource = new InputSource(inputStream);
-        try
-        {
-                XMLReader sheetParser = SAXHelper.newXMLReader();
-                XLSXHandler xlsxHandler = new XLSXHandler(this.batchSize, this.config);
-                ContentHandler handler = new XSSFSheetXMLHandler(styles, null, strings, xlsxHandler, formatter, false);
-                sheetParser.setContentHandler(handler);
-                sheetParser.parse(sheetSource);
-        }
-        catch (ParserConfigurationException e)
-        {
-            throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
-        }
-    }
-
+    public Map<Integer, Set<String>> getCollectHeaders() { return this.collectHeaders; }
 
 }

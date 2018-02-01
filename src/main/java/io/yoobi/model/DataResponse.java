@@ -1,8 +1,6 @@
 package io.yoobi.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by GEMVN on 1/31/2018.
@@ -11,7 +9,7 @@ public class DataResponse
 {
     private int errorCode;
     private String message;
-    private List<String> headers = new ArrayList<>();
+    private Map<Integer, Set<String>> headers = new LinkedHashMap<>();
     private Map<Integer, Map<Integer, List<Cell>>> data;
 
     public DataResponse() {}
@@ -24,20 +22,21 @@ public class DataResponse
         this.data = builder.data;
     }
 
-    public class DataResponseBuilder
+    public static DataResponseBuilder newInstance()
+    {
+
+        return new DataResponse.DataResponseBuilder();
+    }
+
+    public static class DataResponseBuilder
     {
         private int errorCode;
         private String message;
-        private List<String> headers;
+        private Map<Integer, Set<String>> headers;
         private Map<Integer, Map<Integer, List<Cell>>> data;
 
-        public DataResponseBuilder(int errorCode, String message, List<String> headers, Map<Integer, Map<Integer, List<Cell>>> data)
-        {
-            this.errorCode = errorCode;
-            this.message = message;
-            this.headers = headers;
-            this.data = data;
-        }
+
+        public DataResponseBuilder() {}
 
         public DataResponseBuilder setErrorCode(int errorCode)
         {
@@ -51,7 +50,7 @@ public class DataResponse
             return this;
         }
 
-        public DataResponseBuilder setHeaders(List<String> headers)
+        public DataResponseBuilder setHeaders(Map<Integer, Set<String>> headers)
         {
             this.headers = headers;
             return this;
@@ -89,12 +88,12 @@ public class DataResponse
         this.message = message;
     }
 
-    public List<String> getHeaders()
+    public Map<Integer, Set<String>> getHeaders()
     {
         return headers;
     }
 
-    public void setHeaders(List<String> headers)
+    public void setHeaders(Map<Integer, Set<String>> headers)
     {
         this.headers = headers;
     }

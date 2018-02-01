@@ -6,6 +6,7 @@ import io.yoobi.model.DataResponse;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by GEMVN on 2/1/2018.
@@ -23,14 +24,31 @@ public class HtmlUtils
 
         sb.append("<html><head></head><body>");
 
-        sb.append("<table border=1>");
+        if (response.getErrorCode() == 0)
+        {
+            successBuilder(sb, response, idx);
+        }
+        else
+        {
+            errorBuilder(sb, response);
+        }
 
+        sb.append("</body></html>");
+
+        out.println(sb.toString());
+        out.close();
+    }
+
+    private static void successBuilder(StringBuilder sb, DataResponse response, int idx)
+    {
+        sb.append("<table border=1>");
         /**
          * Print table headers
          */
         sb.append("<thead>");
         sb.append("<tr>");
-        response.getHeaders().forEach(head -> sb.append("<th>" + head + "</th>"));
+        Set<String> headers = response.getHeaders().get(idx);
+        headers.forEach(h -> sb.append("<th style='background-color: grey;'>" + h + "</th>"));
         sb.append("</tr>");
         sb.append("</thead><tbody>");
 
@@ -46,9 +64,10 @@ public class HtmlUtils
         });
 
         sb.append("</tbody></table>");
-        sb.append("</body></html>");
+    }
 
-        out.println(sb.toString());
-        out.close();
+    private static void errorBuilder(StringBuilder sb, DataResponse response)
+    {
+        sb.append("<h4>" + response.getMessage() + "</h4>");
     }
 }
