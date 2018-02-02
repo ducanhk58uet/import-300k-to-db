@@ -1,6 +1,7 @@
 package io.yoobi.xls;
 
 import io.yoobi.model.Cell;
+import io.yoobi.model.ECConfig;
 import org.apache.poi.hssf.eventusermodel.*;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.MissingCellDummyRecord;
@@ -10,10 +11,7 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by GEMVN on 1/31/2018.
@@ -32,18 +30,20 @@ public class XLSHandler implements HSSFListener
     //private Map<Integer, List<Cell>> collectMap = new LinkedHashMap<>();
     private Map<Integer, Map<Integer, List<Cell>>> dataTable = new LinkedHashMap<>();
 
-    private int lastRowNumber;
-    private int lastColumnNumber;
+    private int batchSize;
 
-    public XLSHandler(POIFSFileSystem fs)
+    private Map<Integer, Set<String>> collectHeaders = new LinkedHashMap<>();
+
+    public XLSHandler(POIFSFileSystem fs, int batchSize)
     {
         this.fs = fs;
+        this.batchSize = batchSize;
     }
 
-    public static XLSHandler with(String filename) throws IOException
+    public static XLSHandler with(ECConfig config) throws IOException
     {
-        FileInputStream inputStream = new FileInputStream(filename);
-        return new XLSHandler(new POIFSFileSystem(inputStream));
+        FileInputStream inputStream = new FileInputStream(config.getPath());
+        return new XLSHandler(new POIFSFileSystem(inputStream), config.getBatchSize());
     }
 
     public void process() throws IOException
@@ -82,6 +82,7 @@ public class XLSHandler implements HSSFListener
                     }
 
                     dataTable.put(sheetIndex, null);
+                    collectHeaders.put(sheetIndex, new LinkedHashSet<>());
                     System.out.println(orderedBSRs[sheetIndex].getSheetname() + " [" + (sheetIndex + 1) + "]:");
                 }
                 break;
@@ -167,12 +168,6 @@ public class XLSHandler implements HSSFListener
                 break;
         }
 
-        //Xu ly hang moi
-        if (thisRow != -1 && thisRow != lastRowNumber)
-        {
-            lastColumnNumber = -1;
-        }
-
         // Handle missing column
         if (record instanceof MissingCellDummyRecord)
         {
@@ -194,27 +189,24 @@ public class XLSHandler implements HSSFListener
                 Cell cell = new Cell(address, thisStr);
                 Map<Integer, List<Cell>> collectMap = dataTable.get(sheetIndex) != null ? dataTable.get(sheetIndex) : new LinkedHashMap<>();
                 cellList = collectMap.containsKey(thisRow + 1) ? collectMap.get(thisRow+1) : new ArrayList<>();
+                if (cellList.size() > batchSize)
+                {
+                    return;
+                }
                 cellList.add(cell);
                 collectMap.put(thisRow+1, cellList);
                 dataTable.put(sheetIndex, collectMap);
+                //add column to headers
+                if (collectHeaders.containsKey(sheetIndex))
+                {
+                    String column = sheetIndex + ":" + cname;
+                    collectHeaders.get(sheetIndex).add(column);
+                }
             }
 
         }
 
-        //Cap nhap so hang hien tai
-        if (thisRow > -1)
-        {
-            lastRowNumber = thisRow;
-        }
-        if (thisColumn > -1)
-        {
-            lastColumnNumber = thisColumn;
-        }
 
-        if (record instanceof LastCellOfRowDummyRecord)
-        {
-            lastColumnNumber = -1;
-        }
     }
 
     public Map<Integer, Map<Integer, List<Cell>>> getDataTable()
@@ -222,4 +214,8 @@ public class XLSHandler implements HSSFListener
         return this.dataTable;
     }
 
+    public Map<Integer, Set<String>> getCollectHeaders()
+    {
+        return this.collectHeaders;
+    }
 }

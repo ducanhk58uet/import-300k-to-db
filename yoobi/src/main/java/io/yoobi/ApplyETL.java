@@ -11,6 +11,7 @@ import io.yoobi.xlsx.ExcelBuilder;
 import io.yoobi.xlsx.ExcelProcessor;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -38,6 +39,14 @@ public class ApplyETL
                                     .setErrorCode(0)
                                     .setDateList(dateList)
                                     .setHeaders(headers).build();
+
+            if (!dateList.isEmpty())
+            {
+                for (Date date: response.getDateList())
+                {
+                    System.out.println("Has date: " + new SimpleDateFormat("dd/MM/yyyy").format(date));
+                }
+            }
 
         }
         catch (Exception e)
@@ -136,11 +145,26 @@ public class ApplyETL
 
         try
         {
-            XLSHandler xlsHandler = XLSHandler.with(config.getPath());
+            XLSHandler xlsHandler = XLSHandler.with(config);
             xlsHandler.process();
-            Map<Integer, Map<Integer, List<Cell>>> results = xlsHandler.getDataTable();
-            //TODO - need handle implement merging
-            return results;
+            Map<Integer, Map<Integer, List<Cell>>> dataTable = xlsHandler.getDataTable();
+
+            headers = xlsHandler.getCollectHeaders();
+
+            if (config.getLinkSheet() != null && !config.getLinkSheet().isEmpty())
+            {
+
+                Map<Integer, List<Cell>> mergeTable = ExcelBuilder.mergeMulti(dataTable, config.getLinkSheets());
+                Map<Integer, Map<Integer, List<Cell>>> results = new LinkedHashMap<>();
+                results.put(0, mergeTable);
+                headers = ExcelBuilder.mergeHeaders(headers, config.getLinkSheets());
+                return results;
+            }
+            else
+            {
+                return dataTable;
+            }
+
         }
         catch (Exception e)
         {

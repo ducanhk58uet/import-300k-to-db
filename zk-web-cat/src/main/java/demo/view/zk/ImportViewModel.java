@@ -8,22 +8,15 @@ import io.yoobi.YoobiTest;
 import io.yoobi.model.Cell;
 import io.yoobi.model.DataResponse;
 import org.zkoss.bind.annotation.Command;
-import org.zkoss.bind.annotation.ExecutionParam;
 import org.zkoss.bind.annotation.Init;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 
-/**
- * Created by GEMVN on 2/2/2018.
- */
 public class ImportViewModel {
 
 
@@ -46,13 +39,11 @@ public class ImportViewModel {
         //model.addAttribute("dataResponse", response);
 
 
-
-        String sql = "insert into EC_REPORT (ID, VALUE) values (?, ?)";
+        String sql = "insert into EC_REPORT_2 (ID, VALUE_01, VALUE_02) values (?, ?, ?)";
         Connection connection = DBUtils.getConnection();
-        PreparedStatement ps = null;
-        try
+
+        try (PreparedStatement ps = connection.prepareStatement(sql))
         {
-            ps = connection.prepareStatement(sql);
             final int batchSize = 1000;
             int count = 0;
 
@@ -60,8 +51,9 @@ public class ImportViewModel {
                 List<Cell> cellList = response.getData().get(0).get(rowNumber);
                 if (cellList.size() >= 2)
                 {
-                    ps.setString(1, cellList.get(0).getValue().toString());
-                    ps.setString(2, cellList.get(1).getValue().toString());
+                    ps.setInt(1, count);
+                    ps.setString(2, cellList.get(0).getValue().toString());
+                    ps.setString(3, cellList.get(1).getValue().toString());
                     ps.addBatch();
 
                     count++;
@@ -72,12 +64,24 @@ public class ImportViewModel {
             }
 
             ps.executeBatch(); // insert remaining records
-            ps.close();
-            connection.close();
+            //ps.close();
+            //connection.close();
         }
         catch (SQLException e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                connection.close();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
         }
 
 

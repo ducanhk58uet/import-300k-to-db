@@ -48,8 +48,12 @@ public class HtmlUtils
          */
         sb.append("<thead>");
         sb.append("<tr>");
-        Set<String> headers = response.getHeaders().get(idx);
-        headers.forEach(h -> sb.append("<th style='background-color: grey;'>" + h + "</th>"));
+        if (response.getHeaders() != null)
+        {
+            Set<String> headers = response.getHeaders().get(idx);
+            headers.forEach(h -> sb.append("<th style='background-color: grey;'>" + h + "</th>"));
+        }
+
         sb.append("</tr>");
         sb.append("</thead><tbody>");
 
