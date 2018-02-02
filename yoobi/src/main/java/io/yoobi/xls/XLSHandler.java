@@ -186,16 +186,19 @@ public class XLSHandler implements HSSFListener
 
             if (dataTable.containsKey(sheetIndex))
             {
-                Cell cell = new Cell(address, thisStr);
-                Map<Integer, List<Cell>> collectMap = dataTable.get(sheetIndex) != null ? dataTable.get(sheetIndex) : new LinkedHashMap<>();
-                cellList = collectMap.containsKey(thisRow + 1) ? collectMap.get(thisRow+1) : new ArrayList<>();
-                if (cellList.size() > batchSize)
+                if (dataTable.get(sheetIndex) != null && dataTable.get(sheetIndex).size() > batchSize)
                 {
                     return;
                 }
+
+                Cell cell = new Cell(address, thisStr);
+                Map<Integer, List<Cell>> collectMap = dataTable.get(sheetIndex) != null ? dataTable.get(sheetIndex) : new LinkedHashMap<>();
+
+                cellList = collectMap.containsKey(thisRow + 1) ? collectMap.get(thisRow+1) : new ArrayList<>();
                 cellList.add(cell);
                 collectMap.put(thisRow+1, cellList);
                 dataTable.put(sheetIndex, collectMap);
+
                 //add column to headers
                 if (collectHeaders.containsKey(sheetIndex))
                 {

@@ -29,7 +29,7 @@ public class YoobiTest
         PrintStream stream = new PrintStream(output);
 
         //connectMultiSheet(response);
-        HtmlUtils.printHtml(stream, response, 0);
+        HtmlUtils.printHtml(stream, response, 1);
         Desktop.getDesktop().open(output);
 
         System.out.println("Lost Time: " + (System.currentTimeMillis() - startTime));
