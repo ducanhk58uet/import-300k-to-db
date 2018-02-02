@@ -48,7 +48,7 @@ public class YoobiTest
         System.out.println("Lost Time: " + (System.currentTimeMillis() - startTime));
     }
 
-    private static void connectMultiSheet(DataResponse response)
+    public static void connectMultiSheet(DataResponse response)
     {
         int n = 0;
         Map<Integer, List<Cell>> results = new LinkedHashMap<>();

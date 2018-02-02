@@ -1,0 +1,10 @@
+<?page title="Shopping Cart Sample - Login" ?>
+<zk xmlns:n="native">
+    <window title="Import"
+            apply="org.zkoss.bind.BindComposer"
+            viewModel="@id('vm') @init('demo.view.zk.ImportViewModel')">
+
+        <button label="Import" onClick="@command('importData')" />
+
+    </window>
+</zk>

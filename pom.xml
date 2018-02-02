@@ -9,8 +9,8 @@
 	<version>0.1.0</version>
 
 	<modules>
-		<module>zk-web</module>
 		<module>yoobi</module>
+		<module>zk-web-cat</module>
 	</modules>
 
 	<parent>
